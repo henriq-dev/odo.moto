@@ -1,0 +1,715 @@
+/* ==========================================================================
+   TOKENS — paleta inspirada em painel de instrumentos de moto (asfalto + âmbar)
+   ========================================================================== */
+:root {
+  --bg-void: #0a0c0f;
+  --bg-panel: #14171c;
+  --bg-panel-2: #1c2027;
+  --bg-input: #101317;
+  --border: #262b33;
+  --border-soft: #1d2128;
+
+  --text-primary: #f2f0ea;
+  --text-secondary: #8890a0;
+  --text-dim: #565d6b;
+
+  --accent-amber: #ffb627;
+  --accent-amber-dim: #a67618;
+  --accent-red: #ff5c5c;
+
+  --font-display: "Rajdhani", sans-serif;
+  --font-mono: "Share Tech Mono", monospace;
+  --font-body: "Inter", sans-serif;
+
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-void);
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(255,182,39,0.06), transparent 40%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+
+h1, h2, h3, p { margin: 0; }
+
+/* ==========================================================================
+   CABEÇALHO
+   ========================================================================== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 10px;
+  padding: 16px clamp(16px, 5vw, 48px);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.topbar__brand { display: flex; align-items: center; gap: 12px; }
+
+.topbar__mark {
+  color: var(--accent-amber);
+  font-size: 1.4rem;
+  filter: drop-shadow(0 0 6px rgba(255,182,39,0.6));
+}
+
+.topbar__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+}
+
+.topbar__subtitle {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+}
+
+.topbar__date {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: capitalize;
+}
+
+.topbar__auth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn--google {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.btn--google:hover { border-color: var(--accent-amber); }
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-chip__avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+}
+
+.user-chip__nome {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn--logout {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.sync-banner {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-soft);
+  padding: 6px 12px;
+}
+
+.sync-banner--ativo {
+  color: var(--accent-amber);
+}
+
+.install-banner {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--accent-amber);
+  color: #1a1300;
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.install-banner:hover { filter: brightness(1.05); }
+
+/* ==========================================================================
+   MAPA DO PERCURSO
+   ========================================================================== */
+.map-panel__mapa {
+  width: 100%;
+  height: 280px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  filter: saturate(0.9) brightness(0.95);
+}
+
+.ride-item__mapa-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ride-item__mapa-btn:hover { border-color: var(--accent-amber); color: var(--accent-amber); }
+
+/* ==========================================================================
+   LAYOUT GERAL
+   ========================================================================== */
+.app {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(16px, 3vw, 24px);
+}
+
+.panel__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+/* ==========================================================================
+   ODÔMETRO — elemento de assinatura: dígitos em "rolinho" mecânico
+   ========================================================================== */
+.odo-panel {
+  background: radial-gradient(ellipse at top, var(--bg-panel-2), var(--bg-panel) 70%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(24px, 5vw, 40px) 20px;
+  text-align: center;
+}
+
+.odo-panel__label {
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+
+.odo-display {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.odo-digit {
+  font-family: var(--font-mono);
+  font-size: clamp(2.1rem, 9vw, 3.6rem);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 2px;
+  min-width: 0.95em;
+  text-align: center;
+  color: var(--accent-amber);
+  text-shadow: 0 0 12px rgba(255,182,39,0.45);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+}
+
+.odo-digit--unit {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: var(--text-secondary);
+  border: none;
+  background: none;
+  box-shadow: none;
+  align-self: center;
+  padding-left: 6px;
+  text-shadow: none;
+}
+
+.odo-panel__sub {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   CARDS DE ESTATÍSTICA
+   ========================================================================== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.stat-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  border-top: 2px solid var(--accent-amber-dim);
+}
+
+.stat-card__label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.stat-card__value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.7rem;
+  color: var(--text-primary);
+}
+
+.stat-card__value--small {
+  font-size: 1.05rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+.stat-card__unit {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+/* ==========================================================================
+   RASTREAMENTO GPS AO VIVO
+   ========================================================================== */
+.gps-live {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.gps-live__km {
+  font-family: var(--font-mono);
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  color: var(--accent-amber);
+  text-shadow: 0 0 10px rgba(255,182,39,0.35);
+}
+
+.gps-live__unit {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-left: 6px;
+}
+
+.gps-live__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.gps-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.gps-dot--recording {
+  background: var(--accent-red);
+  box-shadow: 0 0 8px rgba(255,92,92,0.7);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.gps-live__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn--stop {
+  background: transparent;
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+}
+
+.btn--stop:hover:not(:disabled) { background: rgba(255,92,92,0.1); }
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.gps-note {
+  margin-top: 14px;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.btn--pilot {
+  width: 100%;
+  margin-top: 14px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--accent-amber-dim);
+  color: var(--accent-amber);
+  padding: 13px;
+}
+
+.btn--pilot:hover { border-color: var(--accent-amber); }
+
+/* ==========================================================================
+   PAINEL DE PILOTAGEM — overlay em tela cheia
+   Alto contraste e números enormes: precisa ser lido de relance, com sol
+   na tela e o celular vibrando junto com o motor.
+   ========================================================================== */
+.pilot-view {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  min-height: 100%;
+  z-index: 999;
+  background: #000;
+  color: var(--accent-amber);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 4vh, 32px);
+  box-sizing: border-box;
+  padding: max(68px, calc(env(safe-area-inset-top) + 52px)) 16px
+           max(80px, calc(env(safe-area-inset-bottom) + 48px));
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+/* O atributo hidden precisa continuar funcionando mesmo com display:flex acima. */
+.pilot-view[hidden] {
+  display: none !important;
+}
+
+/* trava o scroll do fundo enquanto o painel de pilotagem está aberto */
+body.pilotagem-ativa {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.pilot-view__sair {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  right: 14px;
+  background: transparent;
+  border: 1px solid #333;
+  color: var(--text-dim);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+}
+
+.pilot-view__speed-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.pilot-view__speed {
+  font-family: var(--font-mono);
+  font-size: clamp(5.5rem, 28vw, 11rem);
+  font-weight: 700;
+  color: var(--accent-amber);
+  text-shadow: 0 0 30px rgba(255,182,39,0.35);
+}
+
+.pilot-view__speed-unit {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 3vw, 1.4rem);
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+
+.pilot-view__km-row {
+  display: flex;
+  gap: clamp(24px, 8vw, 64px);
+}
+
+.pilot-view__km-block { text-align: center; }
+
+.pilot-view__km-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.pilot-view__km-value {
+  font-family: var(--font-mono);
+  font-size: clamp(1.6rem, 6vw, 2.4rem);
+  color: var(--text-primary);
+}
+
+.pilot-view__km-value small {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+.pilot-view__gps-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  position: static;
+  flex: 0 0 auto;
+  margin: 0;
+  padding-bottom: 8px;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .pilot-view { flex-direction: row; justify-content: space-evenly; gap: 24px; }
+  .pilot-view__km-row { flex-direction: column; gap: 20px; }
+}
+
+/* ==========================================================================
+   FORMULÁRIO
+   ========================================================================== */
+.add-ride__form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 140px;
+}
+
+.field--grow { flex: 2 1 200px; }
+
+.field label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: lowercase;
+}
+
+.field input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+
+.field input:focus-visible {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 1px;
+}
+
+.btn {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: none;
+  border-radius: 6px;
+  padding: 11px 20px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+.btn--primary {
+  background: var(--accent-amber);
+  color: #1a1300;
+}
+
+.btn--primary:hover { filter: brightness(1.08); }
+.btn--primary:active { transform: scale(0.97); }
+
+/* ==========================================================================
+   GRÁFICO
+   ========================================================================== */
+.chart-panel__canvas {
+  width: 100%;
+  display: block;
+}
+
+/* ==========================================================================
+   LISTA DE RODADAS
+   ========================================================================== */
+.rides-list { display: flex; flex-direction: column; gap: 8px; }
+
+.ride-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.ride-item__info { display: flex; flex-direction: column; gap: 2px; }
+
+.ride-item__date {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.ride-item__note {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.ride-item__km {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--accent-amber);
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+.ride-item__delete {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ride-item__delete:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+.rides-empty {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  padding: 20px 0;
+}
+
+/* ==========================================================================
+   RODAPÉ
+   ========================================================================== */
+.app-footer {
+  text-align: center;
+  padding: 24px 16px 40px;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+}
+
+/* ==========================================================================
+   RESPONSIVO — celular
+   ========================================================================== */
+@media (max-width: 640px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .add-ride__form { flex-direction: column; align-items: stretch; }
+  .btn--primary { width: 100%; }
+  .ride-item { flex-wrap: wrap; }
+  .gps-live { flex-direction: column; align-items: stretch; }
+  .gps-live__actions { flex-direction: column; }
+  .gps-live__actions .btn { width: 100%; }
+  .topbar { justify-content: center; text-align: center; }
+  .topbar__date { order: 3; width: 100%; text-align: center; }
+}
+
+/* telas muito estreitas (ex: iPhone SE, ~375px ou menos) */
+@media (max-width: 380px) {
+  .topbar__title { font-size: 1.1rem; }
+  .topbar__date { display: none; } /* sem espaço sobrando pra data nessas telas */
+  .odo-digit { font-size: clamp(1.6rem, 12vw, 2.1rem); padding: 4px 1px; }
+  .pilot-view__km-row { gap: 20px; }
+}
+
+/* Em celulares baixos, o painel pode ultrapassar a altura da viewport.
+   Nesse cenário, a própria tela de pilotagem fica verticalmente rolável. */
+@media (max-width: 640px) and (max-height: 760px) {
+  .pilot-view {
+    justify-content: flex-start;
+    gap: 24px;
+    padding-top: max(76px, calc(env(safe-area-inset-top) + 60px));
+    padding-bottom: max(90px, calc(env(safe-area-inset-bottom) + 58px));
+  }
+
+  .pilot-view__speed {
+    font-size: clamp(4.8rem, 25vw, 8rem);
+  }
+}
+
+/* Respeita preferência de menos animação */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
