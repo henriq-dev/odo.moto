@@ -416,6 +416,9 @@ h1, h2, h3, p { margin: 0; }
 .pilot-view {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* altura real visível no celular, ignora a barra de endereço */
   z-index: 999;
   background: #000;
   color: var(--accent-amber);
@@ -427,6 +430,14 @@ h1, h2, h3, p { margin: 0; }
   padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
   user-select: none;
   -webkit-user-select: none;
+  overflow: hidden;
+}
+
+/* trava o scroll do fundo enquanto o painel de pilotagem está aberto */
+body.pilotagem-ativa {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
 }
 
 .pilot-view__sair {
