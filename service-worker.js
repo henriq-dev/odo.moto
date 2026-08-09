@@ -8,7 +8,7 @@
 // (registro manual e GPS sem login) funciona 100% offline.
 // ==========================================================================
 
-const CACHE_NOME = "odo-moto-v1";
+const CACHE_NOME = "odo-moto-v2";
 
 const ARQUIVOS_DO_APP = [
   "./",
@@ -17,9 +17,9 @@ const ARQUIVOS_DO_APP = [
   "./script.js",
   "./firebase-config.js",
   "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-512-maskable.png",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-512-maskable.png",
 ];
 
 // na instalação, baixa e guarda todos os arquivos do app de uma vez
