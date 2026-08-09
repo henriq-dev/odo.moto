@@ -406,6 +406,8 @@ document.addEventListener("visibilitychange", () => {
 
 async function entrarModoPilotagem() {
   pilotView.hidden = false;
+  document.body.classList.add("pilotagem-ativa");
+  window.scrollTo(0, 0); // garante que o fundo não fica "vazado" atrás do painel
 
   if (document.documentElement.requestFullscreen) {
     document.documentElement.requestFullscreen().catch(() => {}); // tela cheia é bônus, não obrigatório
@@ -429,6 +431,7 @@ async function sairModoPilotagem() {
     document.exitFullscreen().catch(() => {});
   }
   pilotView.hidden = true;
+  document.body.classList.remove("pilotagem-ativa");
 }
 
 function atualizarPainelPilotagem(velocidadeKmh) {
