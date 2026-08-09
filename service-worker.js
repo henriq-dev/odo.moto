@@ -8,7 +8,7 @@
 // (registro manual e GPS sem login) funciona 100% offline.
 // ==========================================================================
 
-const CACHE_NOME = "odo-moto-v3";
+const CACHE_NOME = "odo-moto-v2";
 
 const ARQUIVOS_DO_APP = [
   "./",

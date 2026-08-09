@@ -8,19 +8,97 @@
 // Cada rodada: { id, data: "AAAA-MM-DD", km: number, nota: string, rota?: [{lat,lng}] }
 // ==========================================================================
 
-import { firebaseConfig } from "./firebase-config.js";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-  getFirestore, collection, addDoc, deleteDoc, doc, query, where, onSnapshot,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const STORAGE_KEY = "motoTrips";
+let modoNuvem = false;       // true quando logado — usa Firestore em vez de localStorage
+let usuarioAtual = null;
+let cancelarListenerNuvem = null;
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provedorGoogle = new GoogleAuthProvider();
+// --- referências do DOM (âncora: pegamos tudo uma vez só, no topo, ANTES de
+// qualquer código que possa usá-las — inclusive listeners registrados logo
+// em seguida, como o de instalação do PWA) ---
+const odoDisplay     = document.getElementById("odoDisplay");
+const odoStatusText  = document.getElementById("odoStatusText");
+const statMes        = document.getElementById("statMes");
+const statRodadas    = document.getElementById("statRodadas");
+const statMedia      = document.getElementById("statMedia");
+const statUltima     = document.getElementById("statUltima");
+const formRodada     = document.getElementById("formRodada");
+const inputData      = document.getElementById("inputData");
+const inputKm        = document.getElementById("inputKm");
+const inputNota      = document.getElementById("inputNota");
+const listaRodadas   = document.getElementById("listaRodadas");
+const rideEmptyMsg   = document.getElementById("rideEmptyMsg");
+const chartCanvas    = document.getElementById("chartMensal");
+const dataHojeEl     = document.getElementById("dataHoje");
+const btnIniciarGps  = document.getElementById("btnIniciarGps");
+const btnFinalizarGps = document.getElementById("btnFinalizarGps");
+const gpsKmLive      = document.getElementById("gpsKmLive");
+const gpsStatusText  = document.getElementById("gpsStatusText");
+const gpsDot         = document.getElementById("gpsDot");
+const authArea       = document.getElementById("authArea");
+const syncBanner     = document.getElementById("syncBanner");
+const mapPanel       = document.getElementById("mapPanel");
+const mapaRotaLabel  = document.getElementById("mapaRotaLabel");
+const btnModoPilotagem = document.getElementById("btnModoPilotagem");
+const pilotView       = document.getElementById("pilotView");
+const btnSairPilotagem = document.getElementById("btnSairPilotagem");
+const pilotVelocidade = document.getElementById("pilotVelocidade");
+const pilotKmRodada   = document.getElementById("pilotKmRodada");
+const pilotKmTotal    = document.getElementById("pilotKmTotal");
+const pilotGpsStatus  = document.getElementById("pilotGpsStatus");
+const pilotGpsDot     = document.getElementById("pilotGpsDot");
+const btnInstalarApp  = document.getElementById("btnInstalarApp");
+
+// ==========================================================================
+// FIREBASE — carregado de forma assíncrona e ISOLADA.
+// Antes, o import do Firebase ficava no topo do arquivo: se ele falhasse por
+// qualquer motivo (rede instável, bloqueador de anúncios, CDN fora do ar por
+// um instante), o módulo inteiro falhava e NADA no app funcionava — nem o
+// registro manual, que não depende de internet nenhuma. Agora o Firebase
+// carrega à parte, e se der erro, só a sincronização na nuvem fica
+// indisponível — o resto do app (local, GPS, mapa, gráfico) roda normal.
+// ==========================================================================
+
+let auth = null;
+let db = null;
+let provedorGoogle = null;
+let firebaseFns = null;
+
+async function iniciarFirebase() {
+  try {
+    const { firebaseConfig } = await import("./firebase-config.js");
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    const storeMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+    const app = initializeApp(firebaseConfig);
+    auth = authMod.getAuth(app);
+    db = storeMod.getFirestore(app);
+    provedorGoogle = new authMod.GoogleAuthProvider();
+    firebaseFns = { ...authMod, ...storeMod };
+
+    firebaseFns.onAuthStateChanged(auth, (usuario) => {
+      usuarioAtual = usuario;
+      modoNuvem = !!usuario;
+      renderizarAreaLogin();
+
+      if (modoNuvem) {
+        syncBanner.textContent = "modo nuvem ativo — sincronizado entre seus aparelhos";
+        syncBanner.classList.add("sync-banner--ativo");
+        ativarSincronizacaoNuvem();
+      } else {
+        syncBanner.textContent = "modo local — dados salvos só neste navegador. entre com Google para sincronizar entre aparelhos.";
+        syncBanner.classList.remove("sync-banner--ativo");
+        rodadas = carregarRodadasLocal();
+        renderizarTudo();
+      }
+    });
+  } catch (erro) {
+    // não trava nada — só avisa e mantém tudo em modo local
+    console.warn("Firebase não carregou (o app segue funcionando em modo local):", erro.message);
+    syncBanner.textContent = "modo local — sincronização na nuvem indisponível no momento (sem conexão com o Firebase).";
+  }
+}
 
 // registra o service worker — habilita instalar como app e funcionar offline
 if ("serviceWorker" in navigator) {
@@ -59,76 +137,24 @@ window.addEventListener("appinstalled", () => {
   btnInstalarApp.hidden = true;
 });
 
-const STORAGE_KEY = "motoTrips";
-let modoNuvem = false;       // true quando logado — usa Firestore em vez de localStorage
-let usuarioAtual = null;
-let cancelarListenerNuvem = null;
-
-// --- referências do DOM (âncora: pegamos tudo uma vez só, no topo) ---
-const odoDisplay     = document.getElementById("odoDisplay");
-const odoStatusText  = document.getElementById("odoStatusText");
-const statMes        = document.getElementById("statMes");
-const statRodadas    = document.getElementById("statRodadas");
-const statMedia      = document.getElementById("statMedia");
-const statUltima     = document.getElementById("statUltima");
-const formRodada     = document.getElementById("formRodada");
-const inputData      = document.getElementById("inputData");
-const inputKm        = document.getElementById("inputKm");
-const inputNota      = document.getElementById("inputNota");
-const listaRodadas   = document.getElementById("listaRodadas");
-const rideEmptyMsg   = document.getElementById("rideEmptyMsg");
-const chartCanvas    = document.getElementById("chartMensal");
-const dataHojeEl     = document.getElementById("dataHoje");
-const btnIniciarGps  = document.getElementById("btnIniciarGps");
-const btnFinalizarGps = document.getElementById("btnFinalizarGps");
-const gpsKmLive      = document.getElementById("gpsKmLive");
-const gpsStatusText  = document.getElementById("gpsStatusText");
-const gpsDot         = document.getElementById("gpsDot");
-const authArea       = document.getElementById("authArea");
-const syncBanner     = document.getElementById("syncBanner");
-const mapPanel       = document.getElementById("mapPanel");
-const mapaRotaLabel  = document.getElementById("mapaRotaLabel");
-const btnModoPilotagem = document.getElementById("btnModoPilotagem");
-const pilotView       = document.getElementById("pilotView");
-const btnSairPilotagem = document.getElementById("btnSairPilotagem");
-const pilotVelocidade = document.getElementById("pilotVelocidade");
-const pilotKmRodada   = document.getElementById("pilotKmRodada");
-const pilotKmTotal    = document.getElementById("pilotKmTotal");
-const pilotGpsStatus  = document.getElementById("pilotGpsStatus");
-const pilotGpsDot     = document.getElementById("pilotGpsDot");
-const btnInstalarApp  = document.getElementById("btnInstalarApp");
-
 // ==========================================================================
 // AUTENTICAÇÃO (Firebase Auth — login com Google)
 // ==========================================================================
 
 function entrarComGoogle() {
-  signInWithPopup(auth, provedorGoogle).catch((erro) => {
+  if (!auth || !firebaseFns) {
+    alert("A sincronização na nuvem não está disponível agora (sem conexão com o Firebase). O app continua funcionando normalmente em modo local.");
+    return;
+  }
+  firebaseFns.signInWithPopup(auth, provedorGoogle).catch((erro) => {
     alert("Não foi possível entrar: " + erro.message);
   });
 }
 
 function sair() {
   if (cancelarListenerNuvem) cancelarListenerNuvem();
-  signOut(auth);
+  if (auth && firebaseFns) firebaseFns.signOut(auth);
 }
-
-onAuthStateChanged(auth, (usuario) => {
-  usuarioAtual = usuario;
-  modoNuvem = !!usuario;
-  renderizarAreaLogin();
-
-  if (modoNuvem) {
-    syncBanner.textContent = "modo nuvem ativo — sincronizado entre seus aparelhos";
-    syncBanner.classList.add("sync-banner--ativo");
-    ativarSincronizacaoNuvem();
-  } else {
-    syncBanner.textContent = "modo local — dados salvos só neste navegador. entre com Google para sincronizar entre aparelhos.";
-    syncBanner.classList.remove("sync-banner--ativo");
-    rodadas = carregarRodadasLocal();
-    renderizarTudo();
-  }
-});
 
 function renderizarAreaLogin() {
   if (!usuarioAtual) {
@@ -164,19 +190,19 @@ function salvarRodadasLocal(lista) {
 // ==========================================================================
 
 function ativarSincronizacaoNuvem() {
-  const referencia = query(collection(db, "rodadas"), where("uid", "==", usuarioAtual.uid));
-  cancelarListenerNuvem = onSnapshot(referencia, (snapshot) => {
+  const referencia = firebaseFns.query(firebaseFns.collection(db, "rodadas"), firebaseFns.where("uid", "==", usuarioAtual.uid));
+  cancelarListenerNuvem = firebaseFns.onSnapshot(referencia, (snapshot) => {
     rodadas = snapshot.docs.map((d) => ({ firestoreId: d.id, ...d.data() }));
     renderizarTudo();
   });
 }
 
 async function salvarRodadaNuvem(rodada) {
-  await addDoc(collection(db, "rodadas"), { ...rodada, uid: usuarioAtual.uid });
+  await firebaseFns.addDoc(firebaseFns.collection(db, "rodadas"), { ...rodada, uid: usuarioAtual.uid });
 }
 
 async function excluirRodadaNuvem(firestoreId) {
-  await deleteDoc(doc(db, "rodadas", firestoreId));
+  await firebaseFns.deleteDoc(firebaseFns.doc(db, "rodadas", firestoreId));
 }
 
 // função única usada pelo resto do app — decide local ou nuvem automaticamente
@@ -407,8 +433,7 @@ document.addEventListener("visibilitychange", () => {
 async function entrarModoPilotagem() {
   pilotView.hidden = false;
   document.body.classList.add("pilotagem-ativa");
-  // A tela de pilotagem possui rolagem própria; o fundo continua travado.
-  pilotView.scrollTop = 0;
+  window.scrollTo(0, 0); // garante que o fundo não fica "vazado" atrás do painel
 
   if (document.documentElement.requestFullscreen) {
     document.documentElement.requestFullscreen().catch(() => {}); // tela cheia é bônus, não obrigatório
@@ -707,3 +732,7 @@ function inicializar() {
 window.addEventListener("resize", renderizarGrafico);
 
 inicializar();
+
+// carrega o Firebase por fora — se demorar ou falhar, o app já está
+// funcionando normalmente em modo local enquanto isso
+iniciarFirebase();

@@ -416,8 +416,9 @@ h1, h2, h3, p { margin: 0; }
 .pilot-view {
   position: fixed;
   inset: 0;
-  width: 100%;
-  min-height: 100%;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* altura real visível no celular, ignora a barra de endereço */
   z-index: 999;
   background: #000;
   color: var(--accent-amber);
@@ -426,21 +427,10 @@ h1, h2, h3, p { margin: 0; }
   align-items: center;
   justify-content: center;
   gap: clamp(16px, 4vh, 32px);
-  box-sizing: border-box;
-  padding: max(68px, calc(env(safe-area-inset-top) + 52px)) 16px
-           max(80px, calc(env(safe-area-inset-bottom) + 48px));
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
   user-select: none;
   -webkit-user-select: none;
-  -webkit-overflow-scrolling: touch;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  touch-action: pan-y;
-}
-
-/* O atributo hidden precisa continuar funcionando mesmo com display:flex acima. */
-.pilot-view[hidden] {
-  display: none !important;
+  overflow: hidden;
 }
 
 /* trava o scroll do fundo enquanto o painel de pilotagem está aberto */
@@ -448,6 +438,13 @@ body.pilotagem-ativa {
   overflow: hidden;
   height: 100vh;
   height: 100dvh;
+}
+
+/* CRÍTICO: garante que o atributo "hidden" do HTML sempre esconda o painel,
+   mesmo com o display:flex definido acima (sem isso, o painel ficava
+   visível o tempo todo, cobrindo o dashboard desde o carregamento) */
+.pilot-view[hidden] {
+  display: none !important;
 }
 
 .pilot-view__sair {
@@ -520,10 +517,8 @@ body.pilotagem-ativa {
   gap: 8px;
   font-size: 0.78rem;
   color: var(--text-dim);
-  position: static;
-  flex: 0 0 auto;
-  margin: 0;
-  padding-bottom: 8px;
+  position: absolute;
+  bottom: max(18px, env(safe-area-inset-bottom));
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
@@ -692,21 +687,6 @@ body.pilotagem-ativa {
   .topbar__date { display: none; } /* sem espaço sobrando pra data nessas telas */
   .odo-digit { font-size: clamp(1.6rem, 12vw, 2.1rem); padding: 4px 1px; }
   .pilot-view__km-row { gap: 20px; }
-}
-
-/* Em celulares baixos, o painel pode ultrapassar a altura da viewport.
-   Nesse cenário, a própria tela de pilotagem fica verticalmente rolável. */
-@media (max-width: 640px) and (max-height: 760px) {
-  .pilot-view {
-    justify-content: flex-start;
-    gap: 24px;
-    padding-top: max(76px, calc(env(safe-area-inset-top) + 60px));
-    padding-bottom: max(90px, calc(env(safe-area-inset-bottom) + 58px));
-  }
-
-  .pilot-view__speed {
-    font-size: clamp(4.8rem, 25vw, 8rem);
-  }
 }
 
 /* Respeita preferência de menos animação */
